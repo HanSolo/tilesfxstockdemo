@@ -14,3 +14,9 @@ dependencies {
     //compile "eu.hansolo:tilesfx:+"
     compile 'com.googlecode.json-simple:json-simple:1.1'
 }
+
+// start the demo from gradle
+task Demo(type: JavaExec) {
+    main = "eu.hansolo.fx.tilesfxstockdemo.Main"
+    classpath = sourceSets.main.runtimeClasspath
+}
