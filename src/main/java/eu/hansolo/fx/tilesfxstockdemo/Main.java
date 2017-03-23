@@ -156,7 +156,7 @@ public class Main extends Application {
         return TileBuilder.create()
                           .skinType(SkinType.STOCK)
                           .prefSize(TILE_SIZE, TILE_SIZE)
-                          .averagingPeriod(390)
+                          .averagingPeriod(120)
                           .animated(false)
                           .build();
     }
