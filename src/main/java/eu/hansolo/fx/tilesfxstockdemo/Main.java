@@ -50,7 +50,7 @@ public class Main extends Application {
         orclStockQuote = new StockQuote(ORCL_STOCK_SYMBOL);
         ibmStockQuote  = new StockQuote(IBM_STOCK_SYMBOL);
 
-        orclStockTile  = createTile();
+        orclStockTile = createTile();
         ibmStockTile  = createTile();
 
         matrix = createMatrix();
@@ -61,7 +61,7 @@ public class Main extends Application {
         textLength        = text.length();
         textLengthInPixel = textLength * 8;
 
-        lastTimerCall = System.nanoTime();
+        lastTimerCall     = System.nanoTime();
         timer = new AnimationTimer() {
             @Override public void handle(final long now) {
                 if (now > lastTimerCall + 24_000_000l) {     // update Dot Matrix display every 24 ms
@@ -78,13 +78,13 @@ public class Main extends Application {
         };
 
         orclStockQuote.addQuoteEventListener(e -> {
+            orclStockTile.setTitle(e.getStockQuote().getInfoText());
             orclStockTile.setReferenceValue(e.getStockQuote().getPreviousClose());
             orclStockTile.setValue(e.getStockQuote().getLastPrice());
             updateTickerText();
         });
-
-
         ibmStockQuote.addQuoteEventListener(e -> {
+            ibmStockTile.setTitle(e.getStockQuote().getInfoText());
             ibmStockTile.setReferenceValue(e.getStockQuote().getPreviousClose());
             ibmStockTile.setValue(e.getStockQuote().getLastPrice());
             updateTickerText();

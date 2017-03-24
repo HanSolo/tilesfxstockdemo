@@ -200,6 +200,8 @@ public class StockQuote {
 
     public String toJSONString() { return toJSON().toJSONString(); }
 
+    public String getInfoText() { return new StringBuilder(symbol).append(" (").append(name).append(")").toString(); }
+
     @Override public String toString() {
         return new StringBuilder().append(symbol)
                                   .append(" ")
