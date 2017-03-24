@@ -3,11 +3,11 @@ package eu.hansolo.fx.tilesfxstockdemo;
 /**
  * Created by hansolo on 24.03.17.
  */
-public class StockQuoteEvent {
+public class QuoteEvent {
     private StockQuote stockQuote;
 
 
-    public StockQuoteEvent(final StockQuote STOCK_QUOTE) {
+    public QuoteEvent(final StockQuote STOCK_QUOTE) {
         stockQuote = STOCK_QUOTE;
     }
 
