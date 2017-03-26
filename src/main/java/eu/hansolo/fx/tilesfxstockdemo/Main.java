@@ -17,29 +17,34 @@ import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.GridPane;
 import javafx.stage.Stage;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 
 /**
  * Created by hansolo on 23.03.17.
  */
 public class Main extends Application {
-    private static final double                  TILE_SIZE         = 500;
-    private static final String                  ORCL_STOCK_SYMBOL = "ORCL";
+    private static final double                  TILE_SIZE         = 250;
     private static final String                  IBM_STOCK_SYMBOL  = "IBM";
+    private static final String                  ORCL_STOCK_SYMBOL = "ORCL";
+    private static final String                  MSFT_STOCK_SYMBOL = "MSFT";
 
-    private              Tile                    orclStockTile;
-    private              StockQuote              orclStockQuote;
-
-    private              Tile                    ibmStockTile;
-    private              StockQuote              ibmStockQuote;
+    private              Map<String, StockQuote> quotes;
+    private              Map<String, Tile>       tiles;
 
     private              DotMatrix               matrix;
-    private              int                     color = DotMatrix.convertToInt(TileColor.ORANGE.color);
+    private              int                     color;
     private              int                     x;
+
+    private              StringBuilder           textBuilder;
     private              String                  text;
     private              int                     textLength;
     private              int                     textLengthInPixel;
+    private              Map<String, String>     texts;
 
     private              long                    lastTimerCall;
     private              AnimationTimer          timer;
@@ -47,29 +52,36 @@ public class Main extends Application {
 
     // ******************** Application Lifecycle *****************************
     @Override public void init() {
-        orclStockQuote = new StockQuote(ORCL_STOCK_SYMBOL);
-        ibmStockQuote  = new StockQuote(IBM_STOCK_SYMBOL);
+        quotes = new HashMap<>();
+        quotes.put(MSFT_STOCK_SYMBOL, new StockQuote(MSFT_STOCK_SYMBOL));
+        quotes.put(IBM_STOCK_SYMBOL, new StockQuote(IBM_STOCK_SYMBOL));
+        quotes.put(ORCL_STOCK_SYMBOL, new StockQuote(ORCL_STOCK_SYMBOL));
 
-        orclStockTile = createTile();
-        ibmStockTile  = createTile();
+        tiles = new HashMap<>(quotes.size());
+        quotes.forEach((symbol, quote) -> tiles.put(symbol, createTile()));
 
-        matrix = createMatrix();
-        GridPane.setColumnSpan(matrix, 2);
-
+        matrix            = createMatrix();
+        GridPane.setColumnSpan(matrix, quotes.size());
+        color             = DotMatrix.convertToInt(TileColor.ORANGE.color);
         x                 = matrix.getCols() + 7;
+        textBuilder       = new StringBuilder();
         text              = "";
         textLength        = text.length();
         textLengthInPixel = textLength * 8;
+        texts             = new HashMap<>(quotes.size());
 
         lastTimerCall     = System.nanoTime();
         timer = new AnimationTimer() {
             @Override public void handle(final long now) {
                 if (now > lastTimerCall + 24_000_000l) {     // update Dot Matrix display every 24 ms
-                    if (x < -textLengthInPixel) { x = matrix.getCols() + 7; }
+                    if (x < -textLengthInPixel) {
+                        x = matrix.getCols() + 7;
+                    }
                     for (int i = 0 ; i < textLength ; i++) {
-                        if (text.charAt(i) == 79) { color = orclStockQuote.getColorValue(); }
-                        if (text.charAt(i) == 73) { color = ibmStockQuote.getColorValue(); }
-                        matrix.setCharAt(text.charAt(i), x + i * 8, 1, color);
+                        char currentChar = text.charAt(i);
+                        if (currentChar == 79) { color = quotes.get(ORCL_STOCK_SYMBOL).getColorValue(); }
+                        if (currentChar == 73) { color = quotes.get(IBM_STOCK_SYMBOL).getColorValue(); }
+                        matrix.setCharAt(currentChar, x + i * 8, 1, color);
                     }
                     x--;
                     lastTimerCall = now;
@@ -77,31 +89,28 @@ public class Main extends Application {
             }
         };
 
-        orclStockQuote.addQuoteEventListener(e -> {
-            orclStockTile.setTitle(e.getStockQuote().getInfoText());
-            orclStockTile.setReferenceValue(e.getStockQuote().getPreviousClose());
-            orclStockTile.setValue(e.getStockQuote().getLastPrice());
+        quotes.forEach((symbol, quote) -> quote.addQuoteEventListener(e -> {
+            tiles.get(symbol).setTitle(e.getStockQuote().getInfoText());
+            tiles.get(symbol).setReferenceValue(e.getStockQuote().getPreviousClose());
+            tiles.get(symbol).setValue(e.getStockQuote().getLastPrice());
             updateTickerText();
-        });
-        ibmStockQuote.addQuoteEventListener(e -> {
-            ibmStockTile.setTitle(e.getStockQuote().getInfoText());
-            ibmStockTile.setReferenceValue(e.getStockQuote().getPreviousClose());
-            ibmStockTile.setValue(e.getStockQuote().getLastPrice());
-            updateTickerText();
-        });
+        }));
     }
 
     @Override public void start(Stage stage) {
-        GridPane pane = new GridPane();
-        pane.setHgap(5);
-        pane.setVgap(5);
-        pane.setPadding(new Insets(5));
-        pane.setBackground(new Background(new BackgroundFill(Tile.BACKGROUND.darker(), CornerRadii.EMPTY, Insets.EMPTY)));
-        pane.add(orclStockTile, 0, 0);
-        pane.add(ibmStockTile, 1, 0);
-        pane.add(matrix, 0, 1);
+        GridPane grid = new GridPane();
+        grid.setHgap(5);
+        grid.setVgap(5);
+        grid.setPadding(new Insets(5));
+        grid.setBackground(new Background(new BackgroundFill(Tile.BACKGROUND.darker(), CornerRadii.EMPTY, Insets.EMPTY)));
 
-        Scene scene = new Scene(pane);
+
+        List<Tile> nodes = new ArrayList<>(tiles.values());
+        for (int i = 0 ; i < nodes.size() ; i++) { grid.add(nodes.get(i), i, 0); }
+
+        grid.add(matrix, 0, 1);
+
+        Scene scene = new Scene(grid);
 
         stage.setTitle("TilesFX Stock Demo");
         stage.setScene(scene);
@@ -117,10 +126,13 @@ public class Main extends Application {
 
     // ******************** Methods *******************************************
     private void updateTickerText() {
-        text = new StringBuilder().append(orclStockQuote.toString())
-                                  .append("  ")
-                                  .append(ibmStockQuote.toString())
-                                  .toString();
+        textBuilder.setLength(0);
+        quotes.forEach((symbol, quote) -> {
+            texts.put(symbol, String.join("", quote.toString(), " "));
+            textBuilder.append(quote.toString()).append("  ");
+        });
+
+        text              = textBuilder.toString();
         textLength        = text.length();
         textLengthInPixel = textLength * 8;
     }
@@ -137,8 +149,8 @@ public class Main extends Application {
 
     private DotMatrix createMatrix() {
         return DotMatrixBuilder.create()
-                               .prefSize(2 * TILE_SIZE, TILE_SIZE * 0.2)
-                               .colsAndRows(100, 9)
+                               .prefSize(quotes.size() * TILE_SIZE, TILE_SIZE * 1/quotes.size())
+                               .colsAndRows(33 * quotes.size(), 9)
                                .dotOnColor(Tile.GREEN)
                                .dotOffColor(Tile.BACKGROUND.brighter())
                                .dotShape(DotShape.SQUARE)
