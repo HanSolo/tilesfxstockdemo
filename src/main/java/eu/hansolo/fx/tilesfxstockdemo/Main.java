@@ -20,7 +20,6 @@ import javafx.stage.Stage;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 
 
@@ -28,21 +27,24 @@ import java.util.Map;
  * Created by hansolo on 23.03.17.
  */
 public class Main extends Application {
-    private static final double                  TILE_SIZE         = 250;
-    private static final String                  IBM_STOCK_SYMBOL  = "IBM";
-    private static final String                  ORCL_STOCK_SYMBOL = "ORCL";
-    private static final String                  MSFT_STOCK_SYMBOL = "MSFT";
+    private static final List<String>            SYMBOLS;
+    static {
+        SYMBOLS = new ArrayList<>();
+        SYMBOLS.add("IBM");
+        SYMBOLS.add("ORCL");
+        SYMBOLS.add("MSFT");
+    }
+
+    private static final double                  TILE_SIZE = 250;
 
     private              Map<String, StockQuote> quotes;
     private              Map<String, Tile>       tiles;
 
     private              DotMatrix               matrix;
     private              int                     color;
+    private              int                     counter;
     private              int                     x;
 
-    private              StringBuilder           textBuilder;
-    private              String                  text;
-    private              int                     textLength;
     private              int                     textLengthInPixel;
     private              Map<String, String>     texts;
 
@@ -53,9 +55,7 @@ public class Main extends Application {
     // ******************** Application Lifecycle *****************************
     @Override public void init() {
         quotes = new HashMap<>();
-        quotes.put(MSFT_STOCK_SYMBOL, new StockQuote(MSFT_STOCK_SYMBOL));
-        quotes.put(IBM_STOCK_SYMBOL, new StockQuote(IBM_STOCK_SYMBOL));
-        quotes.put(ORCL_STOCK_SYMBOL, new StockQuote(ORCL_STOCK_SYMBOL));
+        SYMBOLS.forEach(symbol -> quotes.put(symbol, new StockQuote(symbol)));
 
         tiles = new HashMap<>(quotes.size());
         quotes.forEach((symbol, quote) -> tiles.put(symbol, createTile()));
@@ -64,25 +64,23 @@ public class Main extends Application {
         GridPane.setColumnSpan(matrix, quotes.size());
         color             = DotMatrix.convertToInt(TileColor.ORANGE.color);
         x                 = matrix.getCols() + 7;
-        textBuilder       = new StringBuilder();
-        text              = "";
-        textLength        = text.length();
-        textLengthInPixel = textLength * 8;
+        counter           = 0;
+        textLengthInPixel = 0;
         texts             = new HashMap<>(quotes.size());
 
         lastTimerCall     = System.nanoTime();
         timer = new AnimationTimer() {
             @Override public void handle(final long now) {
                 if (now > lastTimerCall + 24_000_000l) {     // update Dot Matrix display every 24 ms
-                    if (x < -textLengthInPixel) {
-                        x = matrix.getCols() + 7;
-                    }
-                    for (int i = 0 ; i < textLength ; i++) {
-                        char currentChar = text.charAt(i);
-                        if (currentChar == 79) { color = quotes.get(ORCL_STOCK_SYMBOL).getColorValue(); }
-                        if (currentChar == 73) { color = quotes.get(IBM_STOCK_SYMBOL).getColorValue(); }
-                        matrix.setCharAt(currentChar, x + i * 8, 1, color);
-                    }
+                    if (x < -textLengthInPixel) { x = matrix.getCols() + 7; }
+                    counter = 0;
+                    texts.forEach((symbol, text) -> {
+                        color = quotes.get(symbol).getColorValue();
+                        for (int i = 0 ; i < text.length() ; i++) {
+                            matrix.setCharAt(text.charAt(i), x + counter * 8, 1, color);
+                            counter++;
+                        }
+                    });
                     x--;
                     lastTimerCall = now;
                 }
@@ -126,15 +124,12 @@ public class Main extends Application {
 
     // ******************** Methods *******************************************
     private void updateTickerText() {
-        textBuilder.setLength(0);
+        textLengthInPixel = 0;
         quotes.forEach((symbol, quote) -> {
-            texts.put(symbol, String.join("", quote.toString(), " "));
-            textBuilder.append(quote.toString()).append("  ");
+            String text = String.join("", quote.toString(), "  ");
+            texts.put(symbol, text);
+            textLengthInPixel += (text.length() * 8);
         });
-
-        text              = textBuilder.toString();
-        textLength        = text.length();
-        textLengthInPixel = textLength * 8;
     }
 
     private Tile createTile() {
@@ -156,9 +151,6 @@ public class Main extends Application {
                                .dotShape(DotShape.SQUARE)
                                .build();
     }
-
-    private String format(final double VALUE) { return String.format(Locale.US, " %.2f", VALUE); }
-
 
     public static void main(String[] args) {
         launch(args);
