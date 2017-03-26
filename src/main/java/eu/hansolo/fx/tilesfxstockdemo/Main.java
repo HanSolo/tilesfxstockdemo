@@ -144,7 +144,7 @@ public class Main extends Application {
 
     private DotMatrix createMatrix() {
         return DotMatrixBuilder.create()
-                               .prefSize(quotes.size() * TILE_SIZE, TILE_SIZE * 1/quotes.size())
+                               .prefSize(quotes.size() * TILE_SIZE, TILE_SIZE * 0.3)
                                .colsAndRows(33 * quotes.size(), 9)
                                .dotOnColor(Tile.GREEN)
                                .dotOffColor(Tile.BACKGROUND.brighter())
