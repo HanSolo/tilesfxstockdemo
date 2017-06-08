@@ -24,7 +24,7 @@ public class StockQuote {
     private static final int                      GREEN        = DotMatrix.convertToInt(TileColor.LIGHT_GREEN.color);
     private static final int                      RED          = DotMatrix.convertToInt(TileColor.LIGHT_RED.color);
     private static final int                      ORANGE       = DotMatrix.convertToInt(TileColor.ORANGE.color);
-    private static final DateTimeFormatter        FORMATTER    = DateTimeFormatter.ofPattern("EEE MMM dd HH:mm:ss zXXX yyyy", Locale.US);
+    private static final DateTimeFormatter        FORMATTER    = DateTimeFormatter.ofPattern("EEE MMM d[d] HH:mm:ss zXXX yyyy", Locale.US);
     private        final QuoteEvent               UPDATE_EVENT = new QuoteEvent(StockQuote.this);
     private              List<QuoteEventListener> listeners;
     private              String                   symbol;

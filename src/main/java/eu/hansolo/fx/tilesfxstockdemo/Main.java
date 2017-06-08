@@ -3,6 +3,7 @@ package eu.hansolo.fx.tilesfxstockdemo;
 import eu.hansolo.fx.dotmatrix.DotMatrix;
 import eu.hansolo.fx.dotmatrix.DotMatrix.DotShape;
 import eu.hansolo.fx.dotmatrix.DotMatrixBuilder;
+import eu.hansolo.fx.dotmatrix.MatrixFont5x7;
 import eu.hansolo.tilesfx.Tile;
 import eu.hansolo.tilesfx.Tile.SkinType;
 import eu.hansolo.tilesfx.Tile.TileColor;
