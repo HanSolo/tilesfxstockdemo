@@ -11,7 +11,7 @@ repositories {
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
-    //compile "eu.hansolo:tilesfx:+"
+    compile "eu.hansolo:tilesfx:+"
     compile 'com.googlecode.json-simple:json-simple:1.1'
 }
 
